@@ -43,7 +43,7 @@ const mainMenu = {
         _: {      
           module: "tts",
           data: {
-            text: `The fastest way to order is online.  If youd like us to text you a link to our website, press 1.  For our ${location_name} locations hours and address, press 2.  To place an order, press 3.   Were always looking for great people to join our team! If youd like us to text you a link to our job application, press 5.  For our customer support line, press 6.  To hear these options again, press 7.`
+            text: `Main Menu. The fastest way to order is online.  If youd like us to text you a link to our website, press 1.  For our ${location_name} locations hours and address, press 2.  To place an order, press 3.   Were always looking for great people to join our team! If youd like us to text you a link to our job application, press 5.  For our customer support line, press 6.  To hear these options again, press 7.`
           },
           children: {
             _: {
