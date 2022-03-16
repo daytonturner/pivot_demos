@@ -2,6 +2,8 @@ var cust_name = "Pizza Planet";
 var location_name = "Pixar";
 var from_sms_number = "17787290818";
 var to_sms_number = "16048893130";  // See sendSMS function for variable method using callerIDNumber
+var restaurant_number = "16048893130";
+var support_number = "16048893130";
 var schedule_message = "Our schedule is 24 by 7";
 var website = "pizzaplanet.com";
 var address = "In the food court at Westfield century mall, near the AMC";
@@ -213,7 +215,7 @@ function buildMainMenu(selectedDigit) {
           _: {
             module: "resources",
             data: {
-              to_did: "16048893130",
+              to_did: restaurant_number,
               use_local_resources: false
             }
           }
@@ -245,7 +247,7 @@ function buildMainMenu(selectedDigit) {
       var mainMenuOption = {
         module: "resources",
         data: {
-          to_did: "16048893130",
+          to_did: support_number,
           use_local_resources: false
         }
       }
@@ -281,7 +283,7 @@ function buildMainMenu(selectedDigit) {
 // First point of entry - Play Greeting
 app.get('/', (req, res) => {
 
-      const callerIDNumber = req.query.Caller-ID-Number;
+      const callerIDNumber = req.query['Caller-ID-Number'];
       console.log(req.url);
       console.log("=== Request to / received (greeting)");
 
@@ -299,33 +301,11 @@ app.get('/mainMenu', (req, res) => {
 
       var query = req.query;
 
-      // Found bug when collecting DTMF digits from the greeting, disabling for now.
-      /*if ( req.query.first ) {
-        //console.log("CAME FROM greeting. first run.");
-         if ( query['Digits'] ) {
-          var selectedDigit = query['Digits']['default'];
+      jsonContent = JSON.stringify(mainMenu);
 
-          mainMenuOption = buildMainMenu(selectedDigit);
-          jsonContent = JSON.stringify(mainMenuOption);
+      console.log(jsonContent);
 
-          console.log("Request to /mainMenuOption received");
-          console.log(jsonContent);
-
-          res.send(jsonContent);
-        } else {
-          jsonContent = JSON.stringify(mainMenu);
-
-          console.log(jsonContent);
-
-          res.send(jsonContent);
-        }
-      } else { */
-        jsonContent = JSON.stringify(mainMenu);
-
-        console.log(jsonContent);
-
-        res.send(jsonContent);
-      // }
+      res.send(jsonContent);
 });
 
 app.get('/mainMenuOption', (req, res) => {
