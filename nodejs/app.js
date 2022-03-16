@@ -1,28 +1,31 @@
 var cust_name = "Pizza Planet";
 var location_name = "Pixar";
+var from_sms_number = "17787290818";
+var to_sms_number = "16048893130";  // Replace with Caller ID
 var schedule_message = "Our schedule is 24 by 7";
 var website = "pizzaplanet.com";
 var address = "In the food court at Westfield century mall, near the AMC";
 var address_link = "http://goo.gl/myaddress";
 var full_schedule = "11am to 11pm, every day of the week";
-var job_message_sms = "Apply here: https://rb.gy/jggmdm.  We have flexible full time and part time positions. Quick service and restaurant experience is a plus, but we also offer training on the job.  Thanks for your interest!";
-var website_info_sms = "Skip the wait - order for pickup, delivery, or catering at ${website}.  Orders can be scheduled up to 1 week in advance";
+var job_message_sms = "Apply: https://rb.gy/jgdm. Full/part time positions. Quick svc/restaurant experience a plus, we also offer training. Thx for your interest!";
+var website_info_sms = "Skip the wait - order for pickup, delivery, or catering at "+website+".  Orders can be scheduled up to 1 week in advance";
 
 const express = require('express')
+const https = require('https');
 const app = express()
 const port = 3000
 
 const greeting = {
   module: "tts",
   data: {
-    text: `Thanks for calling ${cust_name}, ${schedule_message}`
+    text: `Thanks for calling ${cust_name}, ${schedule_message}`,
+    terminators: [ "#" ],
   },
   children: {
     _: {
       module: "pivot",
       data: {
-        voice_url: "http://app01.van1.voxter.net:3000/mainMenu?first=true",
-        req_format: "kazoo"
+        voice_url: "http://app01.van1.voxter.net:3000/mainMenu?first=true"
       }
     }
   }
@@ -35,31 +38,22 @@ const mainMenu = {
   },
   children: {
     _: {
-      module: "flush_dtmf",
+      module: "tts",
       data: {
-        collection_name: "default",
+        text: `Main Menu. The fastest way to order is online.  If youd like us to text you a link to our website, press 1.  For our ${location_name} locations hours and address, press 2.  To place an order, press 3.   Were always looking for great people to join our team! If youd like us to text you a link to our job application, press 5.  For our customer support line, press 6.  To hear these options again, press 7.`
       },
       children: {
-        _: {      
-          module: "tts",
+        _: {
+          module: "collect_dtmf",
           data: {
-            text: `Main Menu. The fastest way to order is online.  If youd like us to text you a link to our website, press 1.  For our ${location_name} locations hours and address, press 2.  To place an order, press 3.   Were always looking for great people to join our team! If youd like us to text you a link to our job application, press 5.  For our customer support line, press 6.  To hear these options again, press 7.`
+            max_digits: 1,
+            collection_name: "menu_selection",
           },
           children: {
             _: {
-              module: "collect_dtmf",
+              module: "pivot",
               data: {
-                max_digits: 1,
-                collection_name: "menu_selection",
-              },
-              children: {
-                _: {
-                  module: "pivot",
-                  data: {
-                    voice_url: "http://app01.van1.voxter.net:3000/mainMenuOption",
-                    req_format: "kazoo"
-                  }
-                }
+                voice_url: "http://app01.van1.voxter.net:3000/mainMenuOption"
               }
             }
           }
@@ -69,30 +63,65 @@ const mainMenu = {
   }
 }
 
+function sendSMS(messageText) {
+  var postData = "from="+from_sms_number+"&to="+to_sms_number+"&msg="+encodeURIComponent(messageText);
+
+  var httpsOptions = {
+    hostname: 'manage.voxter.com',
+    port: 443,
+    path: '/api/v1/',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Content-Length': postData.length
+    }
+  };
+
+  var req = https.request(httpsOptions, (res) => {
+    console.log('statusCode:', res.statusCode);
+    console.log('headers:', res.headers);
+    console.log('postData:', postData);
+
+    res.on('data', (d) => {
+      process.stdout.write(d);
+    });
+  });
+
+  req.on('error', (e) => {
+    console.error(e);
+  });
+
+  req.write(postData);
+  req.end();
+}
+
 function buildHoursMenu(selectedDigit) {
   console.log("Entered buildHoursMenu: Selected Digit "+selectedDigit);
 
   switch (selectedDigit) {
     case '1':
+      var messageText = "We're located "+address;
+
+      sendSMS(messageText);
+
+      var messageText = "Link: "+address_link;
+
+      sendSMS(messageText);
+
+      var messageText = "Schedule this week is: "+full_schedule;
+
+      sendSMS(messageText);
+
       var hoursMenuOption = {
         module: "tts",
         data: {
-          text: "You pressed 1. Hours and Address SMS being prepared."
+          text: "Your information has been sent, please check your mobile device"
         },
         children: {
           _: {
-            module: "tts",
+            module: "pivot",
             data: {
-              text: "Your information has been sent, please check your mobile device"
-            },
-            children: {
-              _: {
-                module: "pivot",
-                data: {
-                  voice_url: "http://app01.van1.voxter.net:3000/mainMenu",
-                  req_format: "kazoo"
-                }
-              }
+              voice_url: "http://app01.van1.voxter.net:3000/mainMenu"
             }
           }
         }
@@ -108,8 +137,7 @@ function buildHoursMenu(selectedDigit) {
           _: {
             module: "pivot",
             data: {
-              voice_url: "http://app01.van1.voxter.net:3000/mainMenu",
-              req_format: "kazoo"
+              voice_url: "http://app01.van1.voxter.net:3000/mainMenu"
             }
           }
         }
@@ -125,25 +153,21 @@ function buildMainMenu(selectedDigit) {
 
   switch (selectedDigit) {
     case '1':
+
+      var messageText = website_info_sms;
+
+      sendSMS(messageText);
+
       var mainMenuOption = {
         module: "tts",
         data: {
-          text: "You pressed 1. SMS is being prepared.",
+          text: "Your information has been sent, please check your mobile device"
         },
         children: {
           _: {
-            module: "tts",
+            module: "pivot",
             data: {
-              text: "Your information has been sent, please check your mobile device"
-            },
-            children: {
-              _: {
-                module: "pivot",
-                data: {
-                  voice_url: "http://app01.van1.voxter.net:3000/mainMenu",
-                  req_format: "kazoo"
-                }
-              }
+              voice_url: "http://app01.van1.voxter.net:3000/mainMenu"
             }
           }
         }
@@ -167,8 +191,7 @@ function buildMainMenu(selectedDigit) {
               _: {
                 module: "pivot",
                 data: {
-                  voice_url: "http://app01.van1.voxter.net:3000/hoursMenuOption",
-                  req_format: "kazoo"
+                  voice_url: "http://app01.van1.voxter.net:3000/hoursMenuOption"
                 }
               }
             }
@@ -177,7 +200,7 @@ function buildMainMenu(selectedDigit) {
       }
       break;
     case '3':
-      var mainMenuOptions = {
+      var mainMenuOption = {
         module: "tts",
         engine: "google",
         data: {
@@ -187,34 +210,50 @@ function buildMainMenu(selectedDigit) {
           _: {
             module: "resources",
             data: {
-              to_did: "+16048893130"
+              to_did: "16048893130",
+              use_local_resources: false
             }
           }
         }
       }
       break;
     case '5':
-      var mainMenuOptions = {
-        module: "sms",
-        text: `${job_message_sms}`
+      var messageText = job_message_sms;
+
+      sendSMS(messageText);
+
+      var mainMenuOption = {
+        module: "tts",
+        engine: "google",
+        data: {
+          text: "Our job application has been sent to you.  Please check your mobile device."
+        },
+        children: {
+          _: {
+            module: "pivot",
+            data: {
+              voice_url: "http://app01.van1.voxter.net:3000/mainMenu"
+            }
+          }
+        }
       }
       break;
     case '6':
-      var mainMenuOptions = {
+      var mainMenuOption = {
         module: "resources",
         data: {
-          to_did: "+16048893130"
+          to_did: "16048893130",
+          use_local_resources: false
         }
       }
-      break;  
+      break;
     case '7':
-      var mainMenuOptions = {
+      var mainMenuOption = {
         module: "pivot",
         data: {
-          voice_url: "http://app01.van1.voxter.net:3000/mainMenu",
-          req_format: "kazoo"
-        } 
-      }    
+          voice_url: "http://app01.van1.voxter.net:3000/mainMenu"
+        }
+      }
   }
 
   return mainMenuOption;
@@ -225,7 +264,7 @@ app.get('/', (req, res) => {
       console.log(req.url);
       console.log("Request to / received (greeting)");
 
-      const jsonContent = JSON.stringify(greeting); 
+      const jsonContent = JSON.stringify(greeting);
 
       res.send(jsonContent);
 
@@ -238,9 +277,9 @@ app.get('/mainMenu', (req, res) => {
 
       var query = req.query;
 
-      if ( req.query.first ) {
-        console.log("CAME FROM greeting. first run.");
-        if ( query['Digits'] ) {
+      /*if ( req.query.first ) {
+        //console.log("CAME FROM greeting. first run.");
+         if ( query['Digits'] ) {
           var selectedDigit = query['Digits']['default'];
 
           mainMenuOption = buildMainMenu(selectedDigit);
@@ -257,13 +296,13 @@ app.get('/mainMenu', (req, res) => {
 
           res.send(jsonContent);
         }
-      } else {
+      } else { */
         jsonContent = JSON.stringify(mainMenu);
 
         console.log(jsonContent);
 
         res.send(jsonContent);
-      }
+      // }
 });
 
 app.get('/mainMenuOption', (req, res) => {
@@ -299,4 +338,3 @@ app.get('/hoursMenuOption', (req, res) => {
 app.listen(port, () => {
     console.log(`Example Toast IVR app listening on port ${port}`)
 });
-
