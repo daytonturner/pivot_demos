@@ -262,11 +262,12 @@ function buildMainMenu(selectedDigit) {
           text: "Invalid Option, please try again"
         },
         children: {
-          _:
+          _: {
             module: "pivot",
             data: {
               voice_url: "http://app01.van1.voxter.net:3000/mainMenu"
             }
+          }
         }
       }
   }
