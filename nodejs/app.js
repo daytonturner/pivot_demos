@@ -1,7 +1,7 @@
 var cust_name = "Pizza Planet";
 var location_name = "Pixar";
 var from_sms_number = "17787290818";
-var to_sms_number = "16048893130";  // See sendSMS function for variable method using callerIDNumber
+//var to_sms_number = "12248750838";  // See sendSMS function for variable method using callerIDNumber
 var restaurant_number = "16048893130";
 var support_number = "16048893130";
 var schedule_message = "Our schedule is 24 by 7";
@@ -65,11 +65,10 @@ const mainMenu = {
   }
 }
 
-function sendSMS(messageText) {
-  //Uncomment to use caller ID Number from pivot request.
-  //var to_sms_number = callerIDNumber;
+function sendSMS(callerIDNumber,messageText) {
+  var to_sms_number = callerIDNumber.replace(/^\+/gm,'');
 
-  var postData = "from="+from_sms_number+"&to="+to_sms_number+"&msg="+encodeURIComposnent(messageText);
+  var postData = "from="+from_sms_number+"&to="+to_sms_number+"&msg="+encodeURIComponent(messageText);
 
   var httpsOptions = {
     hostname: 'manage.voxter.com',
@@ -83,13 +82,13 @@ function sendSMS(messageText) {
   };
 
   var req = https.request(httpsOptions, (res) => {
-    console.log('statusCode:', res.statusCode);
-    console.log('headers:', res.headers);
-    console.log('postData:', postData);
+    console.log('=== SMS request statusCode:', res.statusCode);
+    //console.log('headers:', res.headers);
+    //console.log('postData:', postData);
 
-    res.on('data', (d) => {
+    /*res.on('data', (d) => {
       process.stdout.write(d);
-    });
+    });*/
   });
 
   req.on('error', (e) => {
@@ -100,22 +99,22 @@ function sendSMS(messageText) {
   req.end();
 }
 
-function buildHoursMenu(selectedDigit) {
+function buildHoursMenu(selectedDigit,callerIDNumber) {
   console.log("Entered buildHoursMenu: Selected Digit "+selectedDigit);
 
   switch (selectedDigit) {
     case '1':
       var messageText = "We're located "+address;
 
-      sendSMS(messageText);
+      sendSMS(callerIDNumber,messageText);
 
       var messageText = "Link: "+address_link;
 
-      sendSMS(messageText);
+      sendSMS(callerIDNumber,messageText);
 
       var messageText = "Schedule this week is: "+full_schedule;
 
-      sendSMS(messageText);
+      sendSMS(callerIDNumber,messageText);
 
       var hoursMenuOption = {
         module: "tts",
@@ -152,7 +151,7 @@ function buildHoursMenu(selectedDigit) {
   return hoursMenuOption;
 }
 
-function buildMainMenu(selectedDigit) {
+function buildMainMenu(selectedDigit,callerIDNumber) {
 
   console.log("Entered buildMainMenu: Selected Digit "+selectedDigit);
 
@@ -161,7 +160,7 @@ function buildMainMenu(selectedDigit) {
 
       var messageText = website_info_sms;
 
-      sendSMS(messageText);
+      sendSMS(callerIDNumber, messageText);
 
       var mainMenuOption = {
         module: "tts",
@@ -225,7 +224,7 @@ function buildMainMenu(selectedDigit) {
     case '5':
       var messageText = job_message_sms;
 
-      sendSMS(messageText);
+      sendSMS(callerIDNumber,messageText);
 
       var mainMenuOption = {
         module: "tts",
@@ -283,11 +282,13 @@ function buildMainMenu(selectedDigit) {
 // First point of entry - Play Greeting
 app.get('/', (req, res) => {
 
-      const callerIDNumber = req.query['Caller-ID-Number'];
-      console.log(req.url);
+      console.log(" << "+req.url);
+      //console.log(req.query);
       console.log("=== Request to / received (greeting)");
 
       const jsonContent = JSON.stringify(greeting);
+
+      console.log(" >> "+jsonContent);
 
       res.send(jsonContent);
 
@@ -296,44 +297,46 @@ app.get('/', (req, res) => {
 // Main Menu
 app.get('/mainMenu', (req, res) => {
 
-      console.log(req.url);
+      console.log(" << "+req.url);
       console.log("=== Request to /mainMenu received");
 
       var query = req.query;
 
       jsonContent = JSON.stringify(mainMenu);
 
-      console.log(jsonContent);
+      console.log(" >> "+jsonContent);
 
       res.send(jsonContent);
 });
 
 app.get('/mainMenuOption', (req, res) => {
 
-      console.log(req.url);
+      console.log(" << "+req.url);
 
+      var callerIDNumber = req.query['Caller-ID-Number'];
       var selectedDigit = req.query.Digits['menu_selection'];
 
-      mainMenuOption = buildMainMenu(selectedDigit);
+      mainMenuOption = buildMainMenu(selectedDigit,callerIDNumber);
       jsonContent = JSON.stringify(mainMenuOption);
 
       console.log("=== Request to /mainMenuOption received");
-      console.log(jsonContent);
+      console.log(" >> "+jsonContent);
 
       res.send(jsonContent);
 });
 
 app.get('/hoursMenuOption', (req, res) => {
 
-      console.log(req.url);
+      console.log(" << "+req.url);
 
+      var callerIDNumber = req.query['Caller-ID-Number'];
       var selectedDigit = req.query.Digits['hours_selection'];
 
-      hoursMenuOption = buildHoursMenu(selectedDigit);
+      hoursMenuOption = buildHoursMenu(selectedDigit,callerIDNumber);
       jsonContent = JSON.stringify(hoursMenuOption);
 
       console.log("=== Request to /hoursMenuOption received");
-      console.log(jsonContent);
+      console.log(" >> "+jsonContent);
 
       res.send(jsonContent);
 });
