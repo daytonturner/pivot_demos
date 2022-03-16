@@ -254,6 +254,21 @@ function buildMainMenu(selectedDigit) {
           voice_url: "http://app01.van1.voxter.net:3000/mainMenu"
         }
       }
+      break;
+    default:
+      var mainMenuOption = {
+        module: "tts",
+        data: {
+          text: "Invalid Option, please try again"
+        },
+        children: {
+          _:
+            module: "pivot",
+            data: {
+              voice_url: "http://app01.van1.voxter.net:3000/mainMenu"
+            }
+        }
+      }
   }
 
   return mainMenuOption;
