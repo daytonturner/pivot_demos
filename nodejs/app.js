@@ -1,7 +1,7 @@
 var cust_name = "Pizza Planet";
 var location_name = "Pixar";
 var from_sms_number = "17787290818";
-var to_sms_number = "16048893130";  // Replace with Caller ID
+var to_sms_number = "16048893130";  // See sendSMS function for variable method using callerIDNumber
 var schedule_message = "Our schedule is 24 by 7";
 var website = "pizzaplanet.com";
 var address = "In the food court at Westfield century mall, near the AMC";
@@ -64,6 +64,9 @@ const mainMenu = {
 }
 
 function sendSMS(messageText) {
+  //Uncomment to use caller ID Number from pivot request.
+  //var to_sms_number = callerIDNumber;
+
   var postData = "from="+from_sms_number+"&to="+to_sms_number+"&msg="+encodeURIComposnent(messageText);
 
   var httpsOptions = {
@@ -275,10 +278,12 @@ function buildMainMenu(selectedDigit) {
   return mainMenuOption;
 }
 
+// First point of entry - Play Greeting
 app.get('/', (req, res) => {
 
+      const callerIDNumber = req.query.Caller-ID-Number;
       console.log(req.url);
-      console.log("Request to / received (greeting)");
+      console.log("=== Request to / received (greeting)");
 
       const jsonContent = JSON.stringify(greeting);
 
@@ -286,13 +291,15 @@ app.get('/', (req, res) => {
 
 });
 
+// Main Menu
 app.get('/mainMenu', (req, res) => {
 
       console.log(req.url);
-      console.log("Request to /mainMenu received");
+      console.log("=== Request to /mainMenu received");
 
       var query = req.query;
 
+      // Found bug when collecting DTMF digits from the greeting, disabling for now.
       /*if ( req.query.first ) {
         //console.log("CAME FROM greeting. first run.");
          if ( query['Digits'] ) {
@@ -330,7 +337,7 @@ app.get('/mainMenuOption', (req, res) => {
       mainMenuOption = buildMainMenu(selectedDigit);
       jsonContent = JSON.stringify(mainMenuOption);
 
-      console.log("Request to /mainMenuOption received");
+      console.log("=== Request to /mainMenuOption received");
       console.log(jsonContent);
 
       res.send(jsonContent);
@@ -345,12 +352,12 @@ app.get('/hoursMenuOption', (req, res) => {
       hoursMenuOption = buildHoursMenu(selectedDigit);
       jsonContent = JSON.stringify(hoursMenuOption);
 
-      console.log("Request to /hoursMenuOption received");
+      console.log("=== Request to /hoursMenuOption received");
       console.log(jsonContent);
 
       res.send(jsonContent);
 });
 
 app.listen(port, () => {
-    console.log(`Example Toast IVR app listening on port ${port}`)
+    console.log(`=== Example Toast IVR app listening on port ${port}`)
 });
