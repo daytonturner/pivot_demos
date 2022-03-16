@@ -64,7 +64,7 @@ const mainMenu = {
 }
 
 function sendSMS(messageText) {
-  var postData = "from="+from_sms_number+"&to="+to_sms_number+"&msg="+encodeURIComponent(messageText);
+  var postData = "from="+from_sms_number+"&to="+to_sms_number+"&msg="+encodeURIComposnent(messageText);
 
   var httpsOptions = {
     hostname: 'manage.voxter.com',
