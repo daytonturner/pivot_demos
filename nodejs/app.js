@@ -1,9 +1,9 @@
 var cust_name = "Pizza Planet";
+var location_name = "Pixar";
 var schedule_message = "Our schedule is 24 by 7";
 var website = "pizzaplanet.com";
 var address = "In the food court at Westfield century mall, near the AMC";
 var address_link = "http://goo.gl/myaddress";
-var location_name = "Pixar";
 var full_schedule = "11am to 11pm, every day of the week";
 var job_message_sms = "Apply here: https://rb.gy/jggmdm.  We have flexible full time and part time positions. Quick service and restaurant experience is a plus, but we also offer training on the job.  Thanks for your interest!";
 var website_info_sms = "Skip the wait - order for pickup, delivery, or catering at ${website}.  Orders can be scheduled up to 1 week in advance";
@@ -177,99 +177,52 @@ function buildMainMenu(selectedDigit) {
       }
       break;
     case '3':
-  }
-
-  var mainMenu = {
+      var mainMenuOptions = {
         module: "tts",
+        engine: "google",
         data: {
-          text: `This is the main menu.  You selected ${selectedDigit}`
+          text: "Someone will be right with you"
         },
         children: {
           _: {
-            module: "menu",
+            module: "resources",
             data: {
-              id: "b0aaf9e626a1efc7ac0fdf3c9c4e8d5c"
-            },
-            children: {
-              1: {     // Website Info
-                  module: "tts",
-                  data: {
-                    text: "You pressed 1",
-                  },
-                  engine: "google",
-                  children: {
-                    _: {
-                      module: "tts",
-                      data: {
-                        text: "Your information has been sent, please check your mobile device",
-                      }
-                    }
-                  }
-              },
-              2: {     // Hours and Address
-                  module: "tts",
-                  engine: "google",
-                  data: {
-                    text: `${schedule_message}. If you would like us to text you our full address and schedule, press 1.  To return to the main menu press 2.`,
-                  },
-                  children: {
-                    _: {
-                      module: "collect_dtmf",
-                      data: {
-                        max_digits: 1,
-                        collection_name: "hours_selection",
-                      },
-                      children: {
-                        _: {
-                          module: "pivot",
-                          data: {
-                            voice_url: "http://app01.van1.voxter.net:3000/mainMenuOption",
-                            req_format: "kazoo"
-                          }
-                        }
-                      }
-                    }
-                  }
-              },
-              3: {     // Speak to someone
-                      module: "tts",
-                      engine: "google",
-                      data: {
-                        text: "You pressed 3",
-                      },
-              },
-              5: {     // Apply for Job
-                      module: "tts",
-                      engine: "google",
-                      data: {
-                        text: "You pressed 5",
-                      },
-              },
-              6: {     // Support
-                      module: "tts",
-                      engine: "google",
-                      data: {
-                        text: "You pressed 6",
-                      },
-              },
-              7: {     // Repeat Options
-                      module: "tts",
-                      engine: "google",
-                      data: {
-                        text: "You pressed 7",
-                      },
-                }
-              }
+              to_did: "+16048893130"
             }
           }
         }
+      }
+      break;
+    case '5':
+      var mainMenuOptions = {
+        module: "sms",
+        text: `${job_message_sms}`
+      }
+      break;
+    case '6':
+      var mainMenuOptions = {
+        module: "resources",
+        data: {
+          to_did: "+16048893130"
+        }
+      }
+      break;  
+    case '7':
+      var mainMenuOptions = {
+        module: "pivot",
+        data: {
+          voice_url: "http://app01.van1.voxter.net:3000/mainMenu",
+          req_format: "kazoo"
+        } 
+      }    
+  }
+
   return mainMenuOption;
 }
 
 app.get('/', (req, res) => {
 
       console.log(req.url);
-
       console.log("Request to / received (greeting)");
 
       const jsonContent = JSON.stringify(greeting); 
@@ -281,30 +234,34 @@ app.get('/', (req, res) => {
 app.get('/mainMenu', (req, res) => {
 
       console.log(req.url);
-
       console.log("Request to /mainMenu received");
+
       var query = req.query;
 
-      //console.log(query);
       if ( req.query.first ) {
         console.log("CAME FROM greeting. first run.");
         if ( query['Digits'] ) {
           var selectedDigit = query['Digits']['default'];
+
           mainMenuOption = buildMainMenu(selectedDigit);
           jsonContent = JSON.stringify(mainMenuOption);
+
           console.log("Request to /mainMenuOption received");
           console.log(jsonContent);
+
           res.send(jsonContent);
         } else {
-
           jsonContent = JSON.stringify(mainMenu);
+
           console.log(jsonContent);
+
           res.send(jsonContent);
         }
       } else {
         jsonContent = JSON.stringify(mainMenu);
 
         console.log(jsonContent);
+
         res.send(jsonContent);
       }
 });
@@ -320,6 +277,7 @@ app.get('/mainMenuOption', (req, res) => {
 
       console.log("Request to /mainMenuOption received");
       console.log(jsonContent);
+
       res.send(jsonContent);
 });
 
@@ -334,6 +292,7 @@ app.get('/hoursMenuOption', (req, res) => {
 
       console.log("Request to /hoursMenuOption received");
       console.log(jsonContent);
+
       res.send(jsonContent);
 });
 
